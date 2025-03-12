@@ -2696,6 +2696,10 @@ func (s *Selector) FullJoin(t TableView) *Selector {
 	return s.join("FULL JOIN", t)
 }
 
+func (s *Selector) LateralJoin(t TableView) *Selector {
+	return s.join("LATERAL JOIN", t)
+}
+
 // join adds a join table to the selector with the given kind.
 func (s *Selector) join(kind string, t TableView) *Selector {
 	s.joins = append(s.joins, join{
