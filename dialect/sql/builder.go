@@ -2696,8 +2696,24 @@ func (s *Selector) FullJoin(t TableView) *Selector {
 	return s.join("FULL JOIN", t)
 }
 
-func (s *Selector) LateralJoin(t TableView) *Selector {
-	return s.join("LATERAL JOIN", t)
+// JoinLateral appends a `JOIN LATERAL` clause to the statement.
+func (s *Selector) JoinLateral(t TableView) *Selector {
+	return s.join("JOIN LATERAL", t)
+}
+
+// LeftJoinLateral appends a `LEFT JOIN LATERAL` clause to the statement.
+func (s *Selector) LeftJoinLateral(t TableView) *Selector {
+	return s.join("LEFT JOIN LATERAL", t)
+}
+
+// RightJoinLateral appends a `RIGHT JOIN LATERAL` clause to the statement.
+func (s *Selector) RightJoinLateral(t TableView) *Selector {
+	return s.join("RIGHT JOIN LATERAL", t)
+}
+
+// FullJoinLateral appends a `FULL JOIN LATERAL` clause to the statement.
+func (s *Selector) FullJoinLateral(t TableView) *Selector {
+	return s.join("FULL JOIN LATERAL", t)
 }
 
 // join adds a join table to the selector with the given kind.
