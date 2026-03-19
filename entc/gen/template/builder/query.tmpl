@@ -16,7 +16,7 @@ in the LICENSE file in the root directory of this source tree.
 {{ end }}
 
 {{ $builder := $.QueryName }}
-{{ $receiver := receiver $builder }}
+{{ $receiver := $.QueryReceiver }}
 
 // {{ $builder }} is the builder for querying {{ $.Name }} entities.
 type {{ $builder }} struct {
@@ -221,9 +221,20 @@ func ({{ $receiver }} *{{ $builder }}) AllX(ctx context.Context) []*{{ $.Name }}
 			{{ $receiver }}.Unique(true)
 		}
 		ctx = setContextOp(ctx, {{ $receiver }}.ctx, ent.OpQueryIDs)
-		if err = {{ $receiver }}.Select({{ $.Package }}.FieldID).Scan(ctx, &ids); err != nil {
-			return nil, err
-		}
+		{{- if and $.ID.HasValueScanner (eq $.Storage.Name "sql") }}
+			var nodes []*{{ $.Name }}
+			if nodes, err = {{ $receiver }}.Select({{ $.Package }}.FieldID).All(ctx); err != nil {
+				return nil, err
+			}
+			ids = make([]{{ $.ID.Type }}, len(nodes))
+			for i := range nodes {
+				ids[i] = nodes[i].ID
+			}
+		{{- else }}
+			if err = {{ $receiver }}.Select({{ $.Package }}.FieldID).Scan(ctx, &ids); err != nil {
+				return nil, err
+			}
+		{{- end }}
 		return ids, nil
 	}
 
@@ -412,7 +423,7 @@ func ({{ $receiver }} *{{ $builder }}) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-{{ with extend $ "Builder" $builder "Package" $pkg }}
+{{ with extend $ "Receiver" $receiver "Builder" $builder "Package" $pkg }}
 	{{ $tmpl := printf "dialect/%s/query" $.Storage }}
 	{{ xtemplate $tmpl . }}
 {{ end }}
@@ -428,7 +439,7 @@ func ({{ $receiver }} *{{ $builder }}) prepareQuery(ctx context.Context) error {
 
 {{/* groupby builder */}}
 
-{{ $groupReceiver := receiver $groupBuilder }}
+{{ $groupReceiver := $.GroupReceiver }}
 
 // {{ $groupBuilder }} is the group-by builder for {{ $.Name }} entities.
 type {{ $groupBuilder }} struct {
@@ -451,14 +462,14 @@ func ({{ $groupReceiver }} *{{ $groupBuilder }}) Scan(ctx context.Context, v any
 	return scanWithInterceptors[*{{ $builder }}, *{{ $groupBuilder }}](ctx, {{ $groupReceiver }}.build, {{ $groupReceiver }}, {{ $groupReceiver }}.build.inters, v)
 }
 
-{{ with extend $ "Builder" $groupBuilder }}
+{{ with extend $ "Receiver" $groupReceiver "Builder" $groupBuilder }}
 	{{ $tmpl := printf "dialect/%s/group" $.Storage }}
 	{{ xtemplate $tmpl . }}
 {{ end }}
 
 {{/* select builder */}}
 
-{{ $selectReceiver := receiver $selectBuilder }}
+{{ $selectReceiver := $.SelectReceiver }}
 
 // {{ $selectBuilder }} is the builder for selecting fields of {{ pascal $.Name }} entities.
 type {{ $selectBuilder }} struct {
@@ -481,7 +492,7 @@ func ({{ $selectReceiver }} *{{ $selectBuilder }}) Scan(ctx context.Context, v a
 	return scanWithInterceptors[*{{ $builder }}, *{{ $selectBuilder }}](ctx, {{ $selectReceiver }}.{{ $.QueryName }}, {{ $selectReceiver }}, {{ $selectReceiver }}.inters, v)
 }
 
-{{ with extend $ "Builder" $selectBuilder }}
+{{ with extend $ "Receiver" $selectReceiver "Builder" $selectBuilder }}
 	{{ $tmpl := printf "dialect/%s/select" $.Storage }}
 	{{ xtemplate $tmpl . }}
 {{ end }}

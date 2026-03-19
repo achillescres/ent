@@ -36,11 +36,17 @@ type UserEdges struct {
 	Groups []*Group `json:"groups,omitempty"`
 	// Friends holds the value of the friends edge.
 	Friends []*User `json:"friends,omitempty"`
+	// Parents holds the value of the parents edge.
+	Parents []*User `json:"parents,omitempty"`
+	// Children holds the value of the children edge.
+	Children []*User `json:"children,omitempty"`
 	// Friendships holds the value of the friendships edge.
 	Friendships []*Friendship `json:"friendships,omitempty"`
+	// ParentHood holds the value of the parent_hood edge.
+	ParentHood []*Parent `json:"parent_hood,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [7]bool
 }
 
 // PetsOrErr returns the Pets value or an error if the edge
@@ -70,13 +76,40 @@ func (e UserEdges) FriendsOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "friends"}
 }
 
+// ParentsOrErr returns the Parents value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ParentsOrErr() ([]*User, error) {
+	if e.loadedTypes[3] {
+		return e.Parents, nil
+	}
+	return nil, &NotLoadedError{edge: "parents"}
+}
+
+// ChildrenOrErr returns the Children value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ChildrenOrErr() ([]*User, error) {
+	if e.loadedTypes[4] {
+		return e.Children, nil
+	}
+	return nil, &NotLoadedError{edge: "children"}
+}
+
 // FriendshipsOrErr returns the Friendships value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FriendshipsOrErr() ([]*Friendship, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[5] {
 		return e.Friendships, nil
 	}
 	return nil, &NotLoadedError{edge: "friendships"}
+}
+
+// ParentHoodOrErr returns the ParentHood value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ParentHoodOrErr() ([]*Parent, error) {
+	if e.loadedTypes[6] {
+		return e.ParentHood, nil
+	}
+	return nil, &NotLoadedError{edge: "parent_hood"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -97,7 +130,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the User fields.
-func (u *User) assignValues(columns []string, values []any) error {
+func (_m *User) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -108,15 +141,15 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			u.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case user.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				u.Name = value.String
+				_m.Name = value.String
 			}
 		default:
-			u.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -124,55 +157,70 @@ func (u *User) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the User.
 // This includes values selected through modifiers, order, etc.
-func (u *User) Value(name string) (ent.Value, error) {
-	return u.selectValues.Get(name)
+func (_m *User) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryPets queries the "pets" edge of the User entity.
-func (u *User) QueryPets() *PetQuery {
-	return NewUserClient(u.config).QueryPets(u)
+func (_m *User) QueryPets() *PetQuery {
+	return NewUserClient(_m.config).QueryPets(_m)
 }
 
 // QueryGroups queries the "groups" edge of the User entity.
-func (u *User) QueryGroups() *GroupQuery {
-	return NewUserClient(u.config).QueryGroups(u)
+func (_m *User) QueryGroups() *GroupQuery {
+	return NewUserClient(_m.config).QueryGroups(_m)
 }
 
 // QueryFriends queries the "friends" edge of the User entity.
-func (u *User) QueryFriends() *UserQuery {
-	return NewUserClient(u.config).QueryFriends(u)
+func (_m *User) QueryFriends() *UserQuery {
+	return NewUserClient(_m.config).QueryFriends(_m)
+}
+
+// QueryParents queries the "parents" edge of the User entity.
+func (_m *User) QueryParents() *UserQuery {
+	return NewUserClient(_m.config).QueryParents(_m)
+}
+
+// QueryChildren queries the "children" edge of the User entity.
+func (_m *User) QueryChildren() *UserQuery {
+	return NewUserClient(_m.config).QueryChildren(_m)
 }
 
 // QueryFriendships queries the "friendships" edge of the User entity.
-func (u *User) QueryFriendships() *FriendshipQuery {
-	return NewUserClient(u.config).QueryFriendships(u)
+func (_m *User) QueryFriendships() *FriendshipQuery {
+	return NewUserClient(_m.config).QueryFriendships(_m)
+}
+
+// QueryParentHood queries the "parent_hood" edge of the User entity.
+func (_m *User) QueryParentHood() *ParentQuery {
+	return NewUserClient(_m.config).QueryParentHood(_m)
 }
 
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (u *User) Update() *UserUpdateOne {
-	return NewUserClient(u.config).UpdateOne(u)
+func (_m *User) Update() *UserUpdateOne {
+	return NewUserClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the User entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (u *User) Unwrap() *User {
-	_tx, ok := u.config.driver.(*txDriver)
+func (_m *User) Unwrap() *User {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: User is not a transactional entity")
 	}
-	u.config.driver = _tx.drv
-	return u
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (u *User) String() string {
+func (_m *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("name=")
-	builder.WriteString(u.Name)
+	builder.WriteString(_m.Name)
 	builder.WriteByte(')')
 	return builder.String()
 }

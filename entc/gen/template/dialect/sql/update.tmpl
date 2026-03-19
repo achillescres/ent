@@ -22,7 +22,6 @@ in the LICENSE file in the root directory of this source tree.
 {{ $mutation := print $receiver ".mutation" }}
 {{ $one := hasSuffix $builder "One" }}
 {{- $zero := 0 }}{{ if $one }}{{ $zero = "nil" }}{{ end }}
-{{- $ret := "n" }}{{ if eq $ret $receiver }}{{ $ret = "_n" }}{{ end }}{{ if $one }}{{ $ret = "_node" }}{{ end }}
 
 {{- /* Allow adding methods to the update-builder by ent extensions or user templates.*/}}
 {{- with $tmpls := matchTemplate "dialect/sql/update/additional/*" }}
@@ -31,10 +30,10 @@ in the LICENSE file in the root directory of this source tree.
 	{{- end }}
 {{- end }}
 
-func ({{ $receiver }} *{{ $builder }}) sqlSave(ctx context.Context) ({{ $ret }} {{ if $one }}*{{ $.Name }}{{ else }}int{{ end }}, err error) {
+func ({{ $receiver }} *{{ $builder }}) sqlSave(ctx context.Context) (_node {{ if $one }}*{{ $.Name }}{{ else }}int{{ end }}, err error) {
 	{{- if $.HasUpdateCheckers }}
 		if err := {{ $receiver }}.check(); err != nil {
-			return {{ $ret }}, err
+			return _node, err
 		}
 	{{- end }}
 	_spec := sqlgraph.NewUpdateSpec({{ $.Package }}.Table, {{ $.Package }}.Columns,
@@ -51,7 +50,15 @@ func ({{ $receiver }} *{{ $builder }}) sqlSave(ctx context.Context) ({{ $ret }} 
 			if !ok {
 				return {{ $zero }}, &ValidationError{Name: "{{ $.ID.Name }}", err: errors.New(`{{ $pkg }}: missing "{{ $.Name }}.{{ $.ID.Name }}" for update`)}
 			}
-			_spec.Node.ID.Value = id
+			{{- if $.ID.HasValueScanner }}
+				vv, err := {{ $.ID.ValueFunc }}(id)
+				if err != nil {
+					return {{ $zero }}, err
+				}
+				_spec.Node.ID.Value = vv
+			{{- else }}
+				_spec.Node.ID.Value = id
+			{{- end }}
 			if fields := {{ $receiver }}.fields; len(fields) > 0 {
 				_spec.Node.Columns = make([]string, 0, len(fields))
 				_spec.Node.Columns = append(_spec.Node.Columns, {{ $.Package }}.{{ $.ID.Constant }})
@@ -163,14 +170,14 @@ func ({{ $receiver }} *{{ $builder }}) sqlSave(ctx context.Context) ({{ $ret }} 
 		{{- end }}
 	{{- end }}
 	{{- if $one }}
-		{{ $ret }} = &{{ $.Name }}{config: {{ $receiver }}.config}
-		_spec.Assign = {{ $ret }}.assignValues
-		_spec.ScanValues = {{ $ret }}.scanValues
+		_node = &{{ $.Name }}{config: {{ $receiver }}.config}
+		_spec.Assign = _node.assignValues
+		_spec.ScanValues = _node.scanValues
 	{{- end }}
 	{{- if $one }}
 		if err = sqlgraph.UpdateNode(ctx, {{ $receiver }}.driver, _spec); err != nil {
 	{{- else }}
-		if {{ $ret }}, err = sqlgraph.UpdateNodes(ctx, {{ $receiver }}.driver, _spec); err != nil {
+		if _node, err = sqlgraph.UpdateNodes(ctx, {{ $receiver }}.driver, _spec); err != nil {
 	{{- end }}
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{ {{ $.Package }}.Label}
@@ -180,7 +187,7 @@ func ({{ $receiver }} *{{ $builder }}) sqlSave(ctx context.Context) ({{ $ret }} 
 		return {{ $zero }}, err
 	}
 	{{ $mutation }}.done = true
-	return {{ $ret }}, nil
+	return _node, nil
 }
 {{ end }}
 

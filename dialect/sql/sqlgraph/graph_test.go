@@ -1674,6 +1674,7 @@ type user struct {
 	id    int
 	age   int
 	name  string
+	bfID  int
 	edges struct {
 		fk1 int
 		fk2 int
@@ -1684,7 +1685,7 @@ func (*user) values(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch c := columns[i]; c {
-		case "id", "age", "fk1", "fk2":
+		case "id", "age", "best_friend_id", "fk1", "fk2":
 			values[i] = &sql.NullInt64{}
 		case "name":
 			values[i] = &sql.NullString{}
@@ -1707,6 +1708,8 @@ func (u *user) assign(columns []string, values []any) error {
 			u.age = int(values[i].(*sql.NullInt64).Int64)
 		case "name":
 			u.name = values[i].(*sql.NullString).String
+		case "best_friend_id":
+			u.bfID = int(values[i].(*sql.NullInt64).Int64)
 		case "fk1":
 			u.edges.fk1 = int(values[i].(*sql.NullInt64).Int64)
 		case "fk2":
@@ -2023,6 +2026,39 @@ func TestUpdateNode(t *testing.T) {
 				mock.ExpectCommit()
 			},
 			wantUser: &user{name: "Ariel", age: 30, id: 1},
+		},
+		{
+			name: "schema/edges/clear_bidi_o2o",
+			spec: &UpdateSpec{
+				Node: &NodeSpec{
+					Table:   "users",
+					Schema:  "mydb",
+					Columns: []string{"id", "name", "age", "best_friend_id"},
+					ID:      &FieldSpec{Column: "id", Type: field.TypeInt, Value: 1},
+				},
+				Edges: EdgeMut{
+					Clear: []*EdgeSpec{
+						// Clear O2O bidi edge
+						{Rel: O2O, Schema: "mydb", Table: "users", Bidi: true, Columns: []string{"best_friend_id"}, Target: &EdgeTarget{IDSpec: &FieldSpec{Column: "id"}}},
+					},
+				},
+			},
+			prepare: func(mock sqlmock.Sqlmock) {
+				mock.ExpectBegin()
+				// Clear best friend.
+				mock.ExpectExec(escape("UPDATE `mydb`.`users` SET `best_friend_id` = NULL WHERE `id` = ?")).
+					WithArgs(1).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec(escape("UPDATE `mydb`.`users` SET `best_friend_id` = NULL WHERE `best_friend_id` = ?")).
+					WithArgs(1).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectQuery(escape("SELECT `id`, `name`, `age`, `best_friend_id` FROM `mydb`.`users` WHERE `id` = ?")).
+					WithArgs(1).
+					WillReturnRows(sqlmock.NewRows([]string{"id", "age", "name", "best_friend_id"}).
+						AddRow(1, 31, nil, nil))
+				mock.ExpectCommit()
+			},
+			wantUser: &user{age: 31, id: 1},
 		},
 	}
 	for _, tt := range tests {
@@ -2569,6 +2605,7 @@ func TestIsConstraintError(t *testing.T) {
 		expectedConstraint bool
 		expectedFK         bool
 		expectedUnique     bool
+		expectedCheck      bool
 	}{
 		{
 			name: "MySQL FK",
@@ -2578,6 +2615,7 @@ func TestIsConstraintError(t *testing.T) {
 			expectedConstraint: true,
 			expectedFK:         true,
 			expectedUnique:     false,
+			expectedCheck:      false,
 		},
 		{
 			name:               "SQLite FK",
@@ -2585,6 +2623,7 @@ func TestIsConstraintError(t *testing.T) {
 			expectedConstraint: true,
 			expectedFK:         true,
 			expectedUnique:     false,
+			expectedCheck:      false,
 		},
 		{
 			name:               "Postgres FK",
@@ -2592,6 +2631,7 @@ func TestIsConstraintError(t *testing.T) {
 			expectedConstraint: true,
 			expectedFK:         true,
 			expectedUnique:     false,
+			expectedCheck:      false,
 		},
 		{
 			name: "MySQL FK",
@@ -2600,6 +2640,7 @@ func TestIsConstraintError(t *testing.T) {
 			expectedConstraint: true,
 			expectedFK:         true,
 			expectedUnique:     false,
+			expectedCheck:      false,
 		},
 		{
 			name:               "SQLite FK",
@@ -2607,6 +2648,7 @@ func TestIsConstraintError(t *testing.T) {
 			expectedConstraint: true,
 			expectedFK:         true,
 			expectedUnique:     false,
+			expectedCheck:      false,
 		},
 		{
 			name:               "Postgres FK",
@@ -2614,6 +2656,7 @@ func TestIsConstraintError(t *testing.T) {
 			expectedConstraint: true,
 			expectedFK:         true,
 			expectedUnique:     false,
+			expectedCheck:      false,
 		},
 		{
 			name:               "MySQL Unique",
@@ -2621,6 +2664,7 @@ func TestIsConstraintError(t *testing.T) {
 			expectedConstraint: true,
 			expectedFK:         false,
 			expectedUnique:     true,
+			expectedCheck:      false,
 		},
 		{
 			name:               "SQLite Unique",
@@ -2628,6 +2672,7 @@ func TestIsConstraintError(t *testing.T) {
 			expectedConstraint: true,
 			expectedFK:         false,
 			expectedUnique:     true,
+			expectedCheck:      false,
 		},
 		{
 			name:               "Postgres Unique",
@@ -2635,6 +2680,31 @@ func TestIsConstraintError(t *testing.T) {
 			expectedConstraint: true,
 			expectedFK:         false,
 			expectedUnique:     true,
+			expectedCheck:      false,
+		},
+		{
+			name:               "MySQL Check",
+			errMessage:         `insert node to table "users": Error 3819: Check constraint 'users_age_check' is violated`,
+			expectedConstraint: true,
+			expectedFK:         false,
+			expectedUnique:     false,
+			expectedCheck:      true,
+		},
+		{
+			name:               "SQLite Check",
+			errMessage:         `insert node to table "users": CHECK constraint failed: age >= 18`,
+			expectedConstraint: true,
+			expectedFK:         false,
+			expectedUnique:     false,
+			expectedCheck:      true,
+		},
+		{
+			name:               "Postgres Check",
+			errMessage:         `insert node to table "users": pq: new row for relation "users" violates check constraint "users_age_check"`,
+			expectedConstraint: true,
+			expectedFK:         false,
+			expectedUnique:     false,
+			expectedCheck:      true,
 		},
 	}
 	for _, tt := range tests {
@@ -2643,6 +2713,7 @@ func TestIsConstraintError(t *testing.T) {
 			require.EqualValues(t, tt.expectedConstraint, IsConstraintError(err))
 			require.EqualValues(t, tt.expectedFK, IsForeignKeyConstraintError(err))
 			require.EqualValues(t, tt.expectedUnique, IsUniqueConstraintError(err))
+			require.EqualValues(t, tt.expectedCheck, IsCheckConstraintError(err))
 		})
 	}
 }

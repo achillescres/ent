@@ -33,40 +33,40 @@ type GoodsQuery struct {
 }
 
 // Where adds a new predicate for the GoodsQuery builder.
-func (gq *GoodsQuery) Where(ps ...predicate.Goods) *GoodsQuery {
-	gq.predicates = append(gq.predicates, ps...)
-	return gq
+func (_q *GoodsQuery) Where(ps ...predicate.Goods) *GoodsQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (gq *GoodsQuery) Limit(limit int) *GoodsQuery {
-	gq.ctx.Limit = &limit
-	return gq
+func (_q *GoodsQuery) Limit(limit int) *GoodsQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (gq *GoodsQuery) Offset(offset int) *GoodsQuery {
-	gq.ctx.Offset = &offset
-	return gq
+func (_q *GoodsQuery) Offset(offset int) *GoodsQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (gq *GoodsQuery) Unique(unique bool) *GoodsQuery {
-	gq.ctx.Unique = &unique
-	return gq
+func (_q *GoodsQuery) Unique(unique bool) *GoodsQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (gq *GoodsQuery) Order(o ...goods.OrderOption) *GoodsQuery {
-	gq.order = append(gq.order, o...)
-	return gq
+func (_q *GoodsQuery) Order(o ...goods.OrderOption) *GoodsQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // First returns the first Goods entity from the query.
 // Returns a *NotFoundError when no Goods was found.
-func (gq *GoodsQuery) First(ctx context.Context) (*Goods, error) {
-	nodes, err := gq.Limit(1).All(setContextOp(ctx, gq.ctx, ent.OpQueryFirst))
+func (_q *GoodsQuery) First(ctx context.Context) (*Goods, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +77,8 @@ func (gq *GoodsQuery) First(ctx context.Context) (*Goods, error) {
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (gq *GoodsQuery) FirstX(ctx context.Context) *Goods {
-	node, err := gq.First(ctx)
+func (_q *GoodsQuery) FirstX(ctx context.Context) *Goods {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -87,9 +87,9 @@ func (gq *GoodsQuery) FirstX(ctx context.Context) *Goods {
 
 // FirstID returns the first Goods ID from the query.
 // Returns a *NotFoundError when no Goods ID was found.
-func (gq *GoodsQuery) FirstID(ctx context.Context) (id string, err error) {
+func (_q *GoodsQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = gq.Limit(1).IDs(setContextOp(ctx, gq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -100,8 +100,8 @@ func (gq *GoodsQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (gq *GoodsQuery) FirstIDX(ctx context.Context) string {
-	id, err := gq.FirstID(ctx)
+func (_q *GoodsQuery) FirstIDX(ctx context.Context) string {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -111,8 +111,8 @@ func (gq *GoodsQuery) FirstIDX(ctx context.Context) string {
 // Only returns a single Goods entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one Goods entity is found.
 // Returns a *NotFoundError when no Goods entities are found.
-func (gq *GoodsQuery) Only(ctx context.Context) (*Goods, error) {
-	nodes, err := gq.Limit(2).All(setContextOp(ctx, gq.ctx, ent.OpQueryOnly))
+func (_q *GoodsQuery) Only(ctx context.Context) (*Goods, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -127,8 +127,8 @@ func (gq *GoodsQuery) Only(ctx context.Context) (*Goods, error) {
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (gq *GoodsQuery) OnlyX(ctx context.Context) *Goods {
-	node, err := gq.Only(ctx)
+func (_q *GoodsQuery) OnlyX(ctx context.Context) *Goods {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -138,9 +138,9 @@ func (gq *GoodsQuery) OnlyX(ctx context.Context) *Goods {
 // OnlyID is like Only, but returns the only Goods ID in the query.
 // Returns a *NotSingularError when more than one Goods ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (gq *GoodsQuery) OnlyID(ctx context.Context) (id string, err error) {
+func (_q *GoodsQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = gq.Limit(2).IDs(setContextOp(ctx, gq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -155,8 +155,8 @@ func (gq *GoodsQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (gq *GoodsQuery) OnlyIDX(ctx context.Context) string {
-	id, err := gq.OnlyID(ctx)
+func (_q *GoodsQuery) OnlyIDX(ctx context.Context) string {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -164,18 +164,18 @@ func (gq *GoodsQuery) OnlyIDX(ctx context.Context) string {
 }
 
 // All executes the query and returns a list of GoodsSlice.
-func (gq *GoodsQuery) All(ctx context.Context) ([]*Goods, error) {
-	ctx = setContextOp(ctx, gq.ctx, ent.OpQueryAll)
-	if err := gq.prepareQuery(ctx); err != nil {
+func (_q *GoodsQuery) All(ctx context.Context) ([]*Goods, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*Goods, *GoodsQuery]()
-	return withInterceptors[[]*Goods](ctx, gq, qr, gq.inters)
+	return withInterceptors[[]*Goods](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (gq *GoodsQuery) AllX(ctx context.Context) []*Goods {
-	nodes, err := gq.All(ctx)
+func (_q *GoodsQuery) AllX(ctx context.Context) []*Goods {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -183,20 +183,20 @@ func (gq *GoodsQuery) AllX(ctx context.Context) []*Goods {
 }
 
 // IDs executes the query and returns a list of Goods IDs.
-func (gq *GoodsQuery) IDs(ctx context.Context) (ids []string, err error) {
-	if gq.ctx.Unique == nil && gq.path != nil {
-		gq.Unique(true)
+func (_q *GoodsQuery) IDs(ctx context.Context) (ids []string, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, gq.ctx, ent.OpQueryIDs)
-	if err = gq.Select(goods.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(goods.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (gq *GoodsQuery) IDsX(ctx context.Context) []string {
-	ids, err := gq.IDs(ctx)
+func (_q *GoodsQuery) IDsX(ctx context.Context) []string {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -204,17 +204,17 @@ func (gq *GoodsQuery) IDsX(ctx context.Context) []string {
 }
 
 // Count returns the count of the given query.
-func (gq *GoodsQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, gq.ctx, ent.OpQueryCount)
-	if err := gq.prepareQuery(ctx); err != nil {
+func (_q *GoodsQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, gq, querierCount[*GoodsQuery](), gq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*GoodsQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (gq *GoodsQuery) CountX(ctx context.Context) int {
-	count, err := gq.Count(ctx)
+func (_q *GoodsQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -222,9 +222,9 @@ func (gq *GoodsQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (gq *GoodsQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, gq.ctx, ent.OpQueryExist)
-	switch _, err := gq.FirstID(ctx); {
+func (_q *GoodsQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -235,8 +235,8 @@ func (gq *GoodsQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (gq *GoodsQuery) ExistX(ctx context.Context) bool {
-	exist, err := gq.Exist(ctx)
+func (_q *GoodsQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -245,28 +245,28 @@ func (gq *GoodsQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the GoodsQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (gq *GoodsQuery) Clone() *GoodsQuery {
-	if gq == nil {
+func (_q *GoodsQuery) Clone() *GoodsQuery {
+	if _q == nil {
 		return nil
 	}
 	return &GoodsQuery{
-		config:     gq.config,
-		ctx:        gq.ctx.Clone(),
-		order:      append([]goods.OrderOption{}, gq.order...),
-		inters:     append([]Interceptor{}, gq.inters...),
-		predicates: append([]predicate.Goods{}, gq.predicates...),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]goods.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.Goods{}, _q.predicates...),
 		// clone intermediate query.
-		gremlin: gq.gremlin.Clone(),
-		path:    gq.path,
+		gremlin: _q.gremlin.Clone(),
+		path:    _q.path,
 	}
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
-func (gq *GoodsQuery) GroupBy(field string, fields ...string) *GoodsGroupBy {
-	gq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &GoodsGroupBy{build: gq}
-	grbuild.flds = &gq.ctx.Fields
+func (_q *GoodsQuery) GroupBy(field string, fields ...string) *GoodsGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &GoodsGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = goods.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -274,46 +274,46 @@ func (gq *GoodsQuery) GroupBy(field string, fields ...string) *GoodsGroupBy {
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-func (gq *GoodsQuery) Select(fields ...string) *GoodsSelect {
-	gq.ctx.Fields = append(gq.ctx.Fields, fields...)
-	sbuild := &GoodsSelect{GoodsQuery: gq}
+func (_q *GoodsQuery) Select(fields ...string) *GoodsSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &GoodsSelect{GoodsQuery: _q}
 	sbuild.label = goods.Label
-	sbuild.flds, sbuild.scan = &gq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a GoodsSelect configured with the given aggregations.
-func (gq *GoodsQuery) Aggregate(fns ...AggregateFunc) *GoodsSelect {
-	return gq.Select().Aggregate(fns...)
+func (_q *GoodsQuery) Aggregate(fns ...AggregateFunc) *GoodsSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (gq *GoodsQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range gq.inters {
+func (_q *GoodsQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, gq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	if gq.path != nil {
-		prev, err := gq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		gq.gremlin = prev
+		_q.gremlin = prev
 	}
 	return nil
 }
 
-func (gq *GoodsQuery) gremlinAll(ctx context.Context, hooks ...queryHook) ([]*Goods, error) {
+func (_q *GoodsQuery) gremlinAll(ctx context.Context, hooks ...queryHook) ([]*Goods, error) {
 	res := &gremlin.Response{}
-	traversal := gq.gremlinQuery(ctx)
-	if len(gq.ctx.Fields) > 0 {
-		fields := make([]any, len(gq.ctx.Fields))
-		for i, f := range gq.ctx.Fields {
+	traversal := _q.gremlinQuery(ctx)
+	if len(_q.ctx.Fields) > 0 {
+		fields := make([]any, len(_q.ctx.Fields))
+		for i, f := range _q.ctx.Fields {
 			fields[i] = f
 		}
 		traversal.ValueMap(fields...)
@@ -321,43 +321,43 @@ func (gq *GoodsQuery) gremlinAll(ctx context.Context, hooks ...queryHook) ([]*Go
 		traversal.ValueMap(true)
 	}
 	query, bindings := traversal.Query()
-	if err := gq.driver.Exec(ctx, query, bindings, res); err != nil {
+	if err := _q.driver.Exec(ctx, query, bindings, res); err != nil {
 		return nil, err
 	}
-	var _gos GoodsSlice
-	if err := _gos.FromResponse(res); err != nil {
+	var _ms GoodsSlice
+	if err := _ms.FromResponse(res); err != nil {
 		return nil, err
 	}
-	for i := range _gos {
-		_gos[i].config = gq.config
+	for i := range _ms {
+		_ms[i].config = _q.config
 	}
-	return _gos, nil
+	return _ms, nil
 }
 
-func (gq *GoodsQuery) gremlinCount(ctx context.Context) (int, error) {
+func (_q *GoodsQuery) gremlinCount(ctx context.Context) (int, error) {
 	res := &gremlin.Response{}
-	query, bindings := gq.gremlinQuery(ctx).Count().Query()
-	if err := gq.driver.Exec(ctx, query, bindings, res); err != nil {
+	query, bindings := _q.gremlinQuery(ctx).Count().Query()
+	if err := _q.driver.Exec(ctx, query, bindings, res); err != nil {
 		return 0, err
 	}
 	return res.ReadInt()
 }
 
-func (gq *GoodsQuery) gremlinQuery(context.Context) *dsl.Traversal {
+func (_q *GoodsQuery) gremlinQuery(context.Context) *dsl.Traversal {
 	v := g.V().HasLabel(goods.Label)
-	if gq.gremlin != nil {
-		v = gq.gremlin.Clone()
+	if _q.gremlin != nil {
+		v = _q.gremlin.Clone()
 	}
-	for _, p := range gq.predicates {
+	for _, p := range _q.predicates {
 		p(v)
 	}
-	if len(gq.order) > 0 {
+	if len(_q.order) > 0 {
 		v.Order()
-		for _, p := range gq.order {
+		for _, p := range _q.order {
 			p(v)
 		}
 	}
-	switch limit, offset := gq.ctx.Limit, gq.ctx.Offset; {
+	switch limit, offset := _q.ctx.Limit, _q.ctx.Offset; {
 	case limit != nil && offset != nil:
 		v.Range(*offset, *offset+*limit)
 	case offset != nil:
@@ -365,7 +365,7 @@ func (gq *GoodsQuery) gremlinQuery(context.Context) *dsl.Traversal {
 	case limit != nil:
 		v.Limit(*limit)
 	}
-	if unique := gq.ctx.Unique; unique == nil || *unique {
+	if unique := _q.ctx.Unique; unique == nil || *unique {
 		v.Dedup()
 	}
 	return v
@@ -378,45 +378,45 @@ type GoodsGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (ggb *GoodsGroupBy) Aggregate(fns ...AggregateFunc) *GoodsGroupBy {
-	ggb.fns = append(ggb.fns, fns...)
-	return ggb
+func (_g *GoodsGroupBy) Aggregate(fns ...AggregateFunc) *GoodsGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (ggb *GoodsGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ggb.build.ctx, ent.OpQueryGroupBy)
-	if err := ggb.build.prepareQuery(ctx); err != nil {
+func (_g *GoodsGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*GoodsQuery, *GoodsGroupBy](ctx, ggb.build, ggb, ggb.build.inters, v)
+	return scanWithInterceptors[*GoodsQuery, *GoodsGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (ggb *GoodsGroupBy) gremlinScan(ctx context.Context, root *GoodsQuery, v any) error {
+func (_g *GoodsGroupBy) gremlinScan(ctx context.Context, root *GoodsQuery, v any) error {
 	var (
 		trs   []any
 		names []any
 	)
-	for _, fn := range ggb.fns {
+	for _, fn := range _g.fns {
 		name, tr := fn("p", "")
 		trs = append(trs, tr)
 		names = append(names, name)
 	}
-	for _, f := range *ggb.flds {
+	for _, f := range *_g.flds {
 		names = append(names, f)
 		trs = append(trs, __.As("p").Unfold().Values(f).As(f))
 	}
 	query, bindings := root.gremlinQuery(ctx).Group().
-		By(__.Values(*ggb.flds...).Fold()).
+		By(__.Values(*_g.flds...).Fold()).
 		By(__.Fold().Match(trs...).Select(names...)).
 		Select(dsl.Values).
 		Next().
 		Query()
 	res := &gremlin.Response{}
-	if err := ggb.build.driver.Exec(ctx, query, bindings, res); err != nil {
+	if err := _g.build.driver.Exec(ctx, query, bindings, res); err != nil {
 		return err
 	}
-	if len(*ggb.flds)+len(ggb.fns) == 1 {
+	if len(*_g.flds)+len(_g.fns) == 1 {
 		return res.ReadVal(v)
 	}
 	vm, err := res.ReadValueMap()
@@ -433,40 +433,40 @@ type GoodsSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (gs *GoodsSelect) Aggregate(fns ...AggregateFunc) *GoodsSelect {
-	gs.fns = append(gs.fns, fns...)
-	return gs
+func (_s *GoodsSelect) Aggregate(fns ...AggregateFunc) *GoodsSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (gs *GoodsSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, gs.ctx, ent.OpQuerySelect)
-	if err := gs.prepareQuery(ctx); err != nil {
+func (_s *GoodsSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*GoodsQuery, *GoodsSelect](ctx, gs.GoodsQuery, gs, gs.inters, v)
+	return scanWithInterceptors[*GoodsQuery, *GoodsSelect](ctx, _s.GoodsQuery, _s, _s.inters, v)
 }
 
-func (gs *GoodsSelect) gremlinScan(ctx context.Context, root *GoodsQuery, v any) error {
+func (_s *GoodsSelect) gremlinScan(ctx context.Context, root *GoodsQuery, v any) error {
 	var (
 		res       = &gremlin.Response{}
 		traversal = root.gremlinQuery(ctx)
 	)
-	if fields := gs.ctx.Fields; len(fields) == 1 {
+	if fields := _s.ctx.Fields; len(fields) == 1 {
 		if fields[0] != goods.FieldID {
 			traversal = traversal.Values(fields...)
 		} else {
 			traversal = traversal.ID()
 		}
 	} else {
-		fields := make([]any, len(gs.ctx.Fields))
-		for i, f := range gs.ctx.Fields {
+		fields := make([]any, len(_s.ctx.Fields))
+		for i, f := range _s.ctx.Fields {
 			fields[i] = f
 		}
 		traversal = traversal.ValueMap(fields...)
 	}
 	query, bindings := traversal.Query()
-	if err := gs.driver.Exec(ctx, query, bindings, res); err != nil {
+	if err := _s.driver.Exec(ctx, query, bindings, res); err != nil {
 		return err
 	}
 	if len(root.ctx.Fields) == 1 {

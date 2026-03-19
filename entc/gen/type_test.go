@@ -21,7 +21,7 @@ func TestType(t *testing.T) {
 	require.Equal("T1", typ.Name)
 	require.Equal("t1", typ.Label())
 	require.Equal("t1", typ.Package())
-	require.Equal("t", typ.Receiver())
+	require.Equal("_m", typ.Receiver())
 
 	_, err = NewType(&Config{Package: "entc/gen"}, &load.Schema{
 		Fields: []*load.Field{
@@ -36,6 +36,18 @@ func TestType(t *testing.T) {
 		},
 	})
 	require.EqualError(err, "sensitive field \"foo\" cannot have struct tags", "sensitive field cannot have tags")
+
+	typ, err = NewType(&Config{Package: "entc/gen"}, &load.Schema{
+		Fields: []*load.Field{
+			{Name: "id", Info: &field.TypeInfo{Type: field.TypeString}, Annotations: dict("EntSQL", dict("collation", "utf8_ci_bin"))},
+		},
+	})
+	require.NoError(err)
+	require.NotNil(typ)
+	require.NotNil(t, typ.ID)
+	pkCol := typ.ID.PK()
+	require.NotNil(pkCol)
+	require.Equal("utf8_ci_bin", pkCol.Collation)
 
 	_, err = NewType(&Config{Package: "entc/gen"}, &load.Schema{
 		Name: "T",
@@ -78,6 +90,15 @@ func TestType(t *testing.T) {
 	})
 	require.EqualError(err, "id field cannot be optional", "id field cannot be optional")
 
+	typ, err = NewType(&Config{Package: "entc/gen"}, &load.Schema{
+		Name: "T",
+		Fields: []*load.Field{
+			{Name: "id", Info: &field.TypeInfo{Type: field.TypeString}, ValueScanner: true},
+		},
+	})
+	require.NoError(err)
+	require.True(typ.HasValueScanner())
+
 	_, err = NewType(&Config{Package: "entc/gen"}, &load.Schema{Name: "Type"})
 	require.EqualError(err, "schema lowercase name conflicts with Go keyword \"type\"")
 	_, err = NewType(&Config{Package: "entc/gen"}, &load.Schema{Name: "Int"})
@@ -118,29 +139,6 @@ func TestType_Table(t *testing.T) {
 	for _, tt := range tests {
 		typ := &Type{Name: tt.name}
 		require.Equal(t, tt.label, typ.Table())
-	}
-}
-
-func TestType_Receiver(t *testing.T) {
-	tests := []struct {
-		name     string
-		receiver string
-	}{
-		{"User", "u"},
-		{"Group", "gr"},
-		{"UserData", "ud"},
-		{"UserInfo", "ui"},
-		{"User_Info", "ui"},
-		{"PHBUser", "pu"},
-		{"PHBOrg", "po"},
-		{"DomainSpecificLang", "dospla"},
-		{"[]byte", "b"},
-		{"[16]byte", "b"},
-		{"UserPKey", "up"},
-	}
-	for _, tt := range tests {
-		typ := &Type{Name: tt.name, Config: &Config{Package: "entc/gen"}}
-		require.Equal(t, tt.receiver, typ.Receiver())
 	}
 }
 

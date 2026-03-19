@@ -260,11 +260,8 @@ func NewType(c *Config, schema *load.Schema) (*Type, error) {
 		}
 		// User defined id field.
 		if typ.ID != nil && tf.Name == typ.ID.Name {
-			switch {
-			case tf.Optional:
+			if tf.Optional {
 				return nil, errors.New("id field cannot be optional")
-			case f.ValueScanner:
-				return nil, errors.New("id field cannot have an external ValueScanner")
 			}
 			typ.ID = tf
 		} else {
@@ -336,11 +333,12 @@ func (t Type) PackageAlias() string { return t.alias }
 // Receiver returns the receiver name of this node. It makes sure the
 // receiver names doesn't conflict with import names.
 func (t Type) Receiver() string {
-	r := receiver(t.Name)
-	if t.Package() == r {
-		return "_" + r
-	}
-	return r
+	return "_m"
+}
+
+// Pos returns the filename:line position information of this type in the schema.
+func (t Type) Pos() string {
+	return t.schema.Pos
 }
 
 // hasEdge returns true if this type as an edge (reverse or assoc)
@@ -823,6 +821,11 @@ func (t Type) QueryName() string {
 	return pascal(t.Name) + "Query"
 }
 
+// QueryReceiver returns the receiver name of the query-builder for this type.
+func (t Type) QueryReceiver() string {
+	return "_q"
+}
+
 // FilterName returns the struct name denoting the filter-builder for this type.
 func (t Type) FilterName() string {
 	return pascal(t.Name) + "Filter"
@@ -835,11 +838,7 @@ func (t Type) CreateName() string {
 
 // CreateReceiver returns the receiver name of the create-builder for this type.
 func (t Type) CreateReceiver() string {
-	r := receiver(t.CreateName())
-	if t.Package() == r {
-		return "_" + r
-	}
-	return r
+	return "_c"
 }
 
 // CreateBulkName returns the struct name denoting the create-bulk-builder for this type.
@@ -849,11 +848,7 @@ func (t Type) CreateBulkName() string {
 
 // CreateBulReceiver returns the receiver name of the create-bulk-builder for this type.
 func (t Type) CreateBulReceiver() string {
-	r := receiver(t.CreateBulkName())
-	if t.Package() == r {
-		return "_" + r
-	}
-	return r
+	return "_c"
 }
 
 // UpdateName returns the struct name denoting the update-builder for this type.
@@ -863,11 +858,7 @@ func (t Type) UpdateName() string {
 
 // UpdateReceiver returns the receiver name of the update-builder for this type.
 func (t Type) UpdateReceiver() string {
-	r := receiver(t.UpdateName())
-	if t.Package() == r {
-		return "_" + r
-	}
-	return r
+	return "_u"
 }
 
 // UpdateOneName returns the struct name denoting the update-one-builder for this type.
@@ -877,11 +868,7 @@ func (t Type) UpdateOneName() string {
 
 // UpdateOneReceiver returns the receiver name of the update-one-builder for this type.
 func (t Type) UpdateOneReceiver() string {
-	r := receiver(t.UpdateOneName())
-	if t.Package() == r {
-		return "_" + r
-	}
-	return r
+	return "_u"
 }
 
 // DeleteName returns the struct name denoting the delete-builder for this type.
@@ -891,11 +878,7 @@ func (t Type) DeleteName() string {
 
 // DeleteReceiver returns the receiver name of the delete-builder for this type.
 func (t Type) DeleteReceiver() string {
-	r := receiver(t.DeleteName())
-	if t.Package() == r {
-		return "_" + r
-	}
-	return r
+	return "_d"
 }
 
 // DeleteOneName returns the struct name denoting the delete-one-builder for this type.
@@ -905,16 +888,22 @@ func (t Type) DeleteOneName() string {
 
 // DeleteOneReceiver returns the receiver name of the delete-one-builder for this type.
 func (t Type) DeleteOneReceiver() string {
-	r := receiver(t.DeleteOneName())
-	if t.Package() == r {
-		return "_" + r
-	}
-	return r
+	return "_d"
 }
 
 // MutationName returns the struct name of the mutation builder for this type.
 func (t Type) MutationName() string {
 	return pascal(t.Name) + "Mutation"
+}
+
+// GroupReceiver returns the receiver name of the group-by builder for this type.
+func (t Type) GroupReceiver() string {
+	return "_g"
+}
+
+// SelectReceiver returns the receiver name of the selector builder for this type.
+func (t Type) SelectReceiver() string {
+	return "_s"
 }
 
 // TypeName returns the constant name of the type defined in mutation.go.
@@ -1435,6 +1424,10 @@ func (f Field) ScanType() string {
 
 // HasValueScanner reports if any of the fields has (an external) ValueScanner.
 func (t Type) HasValueScanner() bool {
+	sqlStorage := t.Config == nil || t.Storage == nil || t.Storage.Name == "sql"
+	if sqlStorage && t.ID != nil && t.ID.HasValueScanner() {
+		return true
+	}
 	for _, f := range t.Fields {
 		if f.HasValueScanner() {
 			return true
@@ -1651,7 +1644,8 @@ func (f Field) PK() *schema.Column {
 	}
 	// Override the default-value defined in the
 	// schema if it was provided by an annotation.
-	switch ant := f.EntSQL(); {
+	ant := f.EntSQL()
+	switch {
 	case ant == nil:
 	case ant.Default != "":
 		c.Default = ant.Default
@@ -1664,6 +1658,12 @@ func (f Field) PK() *schema.Column {
 		}
 		c.Default = x
 	}
+
+	// Override collation with annotation value
+	if ant != nil && ant.Collation != "" {
+		c.Collation = ant.Collation
+	}
+
 	if f.def != nil {
 		c.SchemaType = f.def.SchemaType
 	}
